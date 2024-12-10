@@ -16,57 +16,132 @@
 
 Загружаем необходимые библиотеки:
 
+::: {.cell}
+
 ``` r
 library(dplyr)
 ```
 
+::: {.cell-output .cell-output-stderr}
+
 
     Присоединяю пакет: 'dplyr'
+
+:::
+
+::: {.cell-output .cell-output-stderr}
 
     Следующие объекты скрыты от 'package:stats':
 
         filter, lag
 
+:::
+
+::: {.cell-output .cell-output-stderr}
+
     Следующие объекты скрыты от 'package:base':
 
         intersect, setdiff, setequal, union
+
+:::
 
 ``` r
 library(nycflights13)
 ```
 
+:::
+
 Анализ наборов данных, встроенных в пакет `nycflights13`, с помощью R.
 
-1.  Сколько встроенных в пакет nycflights13 датафреймов?
+Сколько встроенных в пакет nycflights13 датафреймов?
+
+::: {.cell}
 
 ``` r
 data(package = "nycflights13")$results[, "Item"]
 ```
 
+::: {.cell-output .cell-output-stdout}
+
     [1] "airlines" "airports" "flights"  "planes"   "weather" 
 
-1.  Сколько строк в каждом датафрейме?
+::: :::
+
+Сколько строк в каждом датафрейме?
+
+::: {.cell}
 
 ``` r
-sapply(list(flights, airlines, airports, planes, weather), nrow)
+list(
+  flights = nrow(flights),
+  airlines = nrow(airlines),
+  airports = nrow(airports),
+  planes = nrow(planes),
+  weather = nrow(weather)
+)
 ```
 
-    [1] 336776     16   1458   3322  26115
+::: {.cell-output .cell-output-stdout}
 
-1.  Сколько столбцов в каждом датафрейме?
+    $flights
+    [1] 336776
+
+    $airlines
+    [1] 16
+
+    $airports
+    [1] 1458
+
+    $planes
+    [1] 3322
+
+    $weather
+    [1] 26115
+
+::: :::
+
+Сколько столбцов в каждом датафрейме?
+
+::: {.cell}
 
 ``` r
-sapply(list(flights, airlines, airports, planes, weather), ncol)
+list(
+  flights = ncol(flights),
+  airlines = ncol(airlines),
+  airports = ncol(airports),
+  planes = ncol(planes),
+  weather = ncol(weather)
+)
 ```
 
-    [1] 19  2  8  9 15
+::: {.cell-output .cell-output-stdout}
 
-1.  Как просмотреть примерный вид датафрейма?
+    $flights
+    [1] 19
+
+    $airlines
+    [1] 2
+
+    $airports
+    [1] 8
+
+    $planes
+    [1] 9
+
+    $weather
+    [1] 15
+
+::: :::
+
+Как просмотреть примерный вид датафрейма?
+
+::: {.cell}
 
 ``` r
-library(dplyr)
-glimpse(flights)
+flights %>% glimpse()
 ```
+
+::: {.cell-output .cell-output-stdout}
 
     Rows: 336,776
     Columns: 19
@@ -90,15 +165,25 @@ glimpse(flights)
     $ minute         <dbl> 15, 29, 40, 45, 0, 58, 0, 0, 0, 0, 0, 0, 0, 0, 0, 59, 0…
     $ time_hour      <dttm> 2013-01-01 05:00:00, 2013-01-01 05:00:00, 2013-01-01 0…
 
-1.  Сколько компаний-перевозчиков (carrier) учитывают эти наборы данных?
+::: :::
+
+Сколько компаний-перевозчиков (carrier) учитывают эти наборы данных?
+
+::: {.cell}
 
 ``` r
 length(unique(flights$carrier))
 ```
 
+::: {.cell-output .cell-output-stdout}
+
     [1] 16
 
-1.  Сколько рейсов принял аэропорт John F Kennedy Intl в мае?
+::: :::
+
+Сколько рейсов принял аэропорт John F Kennedy Intl в мае?
+
+::: {.cell}
 
 ``` r
 flights %>%
@@ -106,9 +191,15 @@ flights %>%
   nrow()
 ```
 
+::: {.cell-output .cell-output-stdout}
+
     [1] 0
 
-1.  Какой самый северный аэропорт?
+::: :::
+
+Какой самый северный аэропорт?
+
+::: {.cell}
 
 ``` r
 airports %>%
@@ -117,13 +208,19 @@ airports %>%
   head(1)
 ```
 
+::: {.cell-output .cell-output-stdout}
+
     # A tibble: 1 × 2
       name                      lat
       <chr>                   <dbl>
     1 Dillant Hopkins Airport  72.3
 
-1.  Какой аэропорт самый высокогорный (находится выше всех над уровнем
-    моря)?
+::: :::
+
+Какой аэропорт самый высокогорный (находится выше всех над уровнем
+моря)?
+
+::: {.cell}
 
 ``` r
 airports %>%
@@ -132,12 +229,18 @@ airports %>%
   head(1)
 ```
 
+::: {.cell-output .cell-output-stdout}
+
     # A tibble: 1 × 2
       name        alt
       <chr>     <dbl>
     1 Telluride  9078
 
-1.  Какие бортовые номера у самых старых самолетов?
+::: :::
+
+Какие бортовые номера у самых старых самолетов?
+
+::: {.cell}
 
 ``` r
 planes %>%
@@ -145,6 +248,8 @@ planes %>%
   select(tailnum, year) %>%
   head(5)
 ```
+
+::: {.cell-output .cell-output-stdout}
 
     # A tibble: 5 × 2
       tailnum  year
@@ -155,8 +260,12 @@ planes %>%
     4 N378AA   1963
     5 N575AA   1963
 
-1.  Какая средняя температура воздуха была в сентябре в аэропорту John F
-    Kennedy Intl?
+::: :::
+
+Какая средняя температура воздуха была в сентябре в аэропорту John F
+Kennedy Intl?
+
+::: {.cell}
 
 ``` r
 weather %>%
@@ -164,12 +273,18 @@ weather %>%
   summarise(mean_temp_C = mean((temp - 32) * 5/9, na.rm = TRUE))
 ```
 
+::: {.cell-output .cell-output-stdout}
+
     # A tibble: 1 × 1
       mean_temp_C
             <dbl>
     1        19.4
 
-1.  Самолеты какой авиакомпании совершили больше всего вылетов в июне?
+::: :::
+
+Самолеты какой авиакомпании совершили больше всего вылетов в июне?
+
+::: {.cell}
 
 ``` r
 flights %>%
@@ -180,12 +295,18 @@ flights %>%
   head(1)
 ```
 
+::: {.cell-output .cell-output-stdout}
+
     # A tibble: 1 × 2
       carrier flight_count
       <chr>          <int>
     1 UA              4975
 
-1.  Самолеты какой авиакомпании задерживались чаще других в 2013 году?
+::: :::
+
+Самолеты какой авиакомпании задерживались чаще других в 2013 году?
+
+::: {.cell}
 
 ``` r
 flights %>%
@@ -195,10 +316,14 @@ flights %>%
   head(1)
 ```
 
+::: {.cell-output .cell-output-stdout}
+
     # A tibble: 1 × 2
       carrier avg_delay
       <chr>       <dbl>
     1 F9           21.9
+
+::: :::
 
 ## Вывод
 
