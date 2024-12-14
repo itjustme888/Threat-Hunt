@@ -1,0 +1,81 @@
+---
+title: "Анализ данных сетевого трафика при помощи библиотеки Arrow"
+author: "Выполнено Кашинцевой Алиной Евгеньевной (l1ndo888@yandex.ru)"
+format: 
+  md:
+    output-file: README.md
+---
+
+# Анализ данных сетевого трафика при помощи библиотеки Arrow
+
+## Цель работы
+
+1. Изучить возможности технологии Apache Arrow для обработки и анализ больших
+данных
+2. Получить навыки применения Arrow совместно с языком программирования R
+3. Получить навыки анализа метаинфомации о сетевом трафике
+4. Получить навыки применения облачных технологий хранения, подготовки и
+анализа данных: Yandex Object Storage, Rstudio Server.
+
+
+## Ходы работы
+
+### Импортируем данные с помощью библиотеки arrow
+
+```{r}
+library(arrow)
+library(dplyr)
+library(tidyverse)
+#download.file("https://storage.yandexcloud.net/arrow-datasets/tm_data.pqt",destfile = "tm_data.pqt")
+df <- arrow::open_dataset(sources = "tm_data.pqt", format = "parquet")
+glimpse(df)
+```
+```{r}
+glimpse(df)
+```
+
+### Приступаем к выполнению заданий
+
+#### 1. Найдите утечку данных из вашей сети
+    
+```{r}
+task1 <- df %>% filter(str_detect(src, "^12.") | str_detect(src, "^13.") | str_detect(src, "^14."))  %>% filter(!str_detect(dst, "^12.") & !str_detect(dst, "^13.") & !str_detect(dst, "^14."))  %>% group_by(src) %>% summarise("sum" = sum(bytes)) %>% arrange(desc(sum)) %>% head(1) %>% select(src) 
+task1 %>% collect()
+```
+    
+#### 2. Найдите утечку данных 2
+    
+  Определим рабочее время.
+    
+```{r}
+task21 <- df %>% select(timestamp, src, dst, bytes) %>% mutate(trafic = (str_detect(src, "^((12|13|14)\\.)") & !str_detect(dst, "^((12|13|14)\\.)")),time = hour(as_datetime(timestamp/1000))) %>% filter(trafic == TRUE, time >= 0 & time <= 24) %>% group_by(time) %>%
+summarise(trafictime = n()) %>% arrange(desc(trafictime))
+task21 %>% collect()
+```
+    
+Рабочим временем является 16-23. 
+    
+```{r}
+nz2 <- df%>%mutate(time=hour(as_datetime(timestamp/1000)))%>%filter(!grepl("^13.37.84.125",src))%>% filter(grepl("^12.|^13.|^14.", src) & !grepl("^12.|^13.|^14.", dst))%>%filter(time>=1&time<=15)%>%group_by(src)%>%summarise("sum" =sum(bytes))%>%select(src,sum)
+nz22 <- nz2%>%filter(sum>286000000) 
+glimpse(nz22)
+```
+    
+#### 3. Найдите утечку данных 3
+    
+```{r}
+task31 <- df %>% filter(!str_detect(src, "^13.37.84.125")) %>% filter(!str_detect(src, "^12.55.77.96")) %>% filter(str_detect(src, "^12.") | str_detect(src, "^13.") | str_detect(src, "^14."))  %>% filter(!str_detect(dst, "^12.") & !str_detect(dst, "^13.") & !str_detect(dst, "^14."))  %>% select(src, bytes, port) 
+
+
+task31 %>%  group_by(port) %>% summarise("mean"=mean(bytes), "max"=max(bytes), "sum" = sum(bytes)) %>% 
+  mutate("Raz"= max-mean)  %>% filter(Raz!=0) %>% arrange(desc(Raz)) %>% head(1) %>% collect()
+```
+    
+```{r}
+task32 <- task31  %>% filter(port==37) %>% group_by(src) %>% summarise("mean"=mean(bytes)) %>% arrange(desc(mean)) %>% head(1) %>% select(src)
+task32 %>% collect()
+```
+
+## Вывод
+
+В ходе выполнения работы был скачан и проанализирован пакет данных tm_data, были выполнены три задания. Для этого были применены облачные технологии хранения, подготовки и анализа данных, а также проанализирована метаинформация о сетевом трафике.
